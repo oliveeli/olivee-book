@@ -1,6 +1,10 @@
+参考：
+- https://v2raycn.com/49.html
+
 # 本脚本适用环境
-系统支持：CentOS 6+，Debian 7+，Ubuntu 12+
-内存要求：≥128M
+系统支持：
+- CentOS 6+，Debian 7+，Ubuntu 12+
+- 内存要求：≥128M
 
 # 代理服务器购买
 代理服务器推荐：[国外科学上网翻墙 VPS 服务器推荐，新手买哪个好？](https://v2raycn.com/38.html)
