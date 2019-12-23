@@ -99,9 +99,6 @@ systemctl enable --now shadowsocks-libev-local
 ```bash
 ## CentOS/RHEL
 yum -y install privoxy
-
-## ArchLinux
-pacman -S privoxy
 ```
 
 ## 全局
@@ -137,9 +134,9 @@ echo 'actionsfile gfwlist.action' >>/etc/privoxy/config
 
 # 启动 privoxy.service 服务
 systemctl start privoxy.service
+systemctl enable privoxy.service
 systemctl -l status privoxy.service
 ```
-
 
 # 环境变量
 有两种方式可以实现全局代理，推荐使用 proxychains-ng，因为更彻底。
@@ -149,7 +146,7 @@ systemctl -l status privoxy.service
 
 > ~~但实际上，无论哪种方式~~，体验都不是很好，如果你愿意折腾，推荐使用 [ss-redir 透明代理](https://www.zfl9.com/ss-redir.html)。
 
-http_proxy 方式：
+http_proxy方式（docker pull镜像不会读取这个参数，需要后后续的办法）：
 ```bash
 # privoxy 默认监听端口为 8118
 proxy="http://127.0.0.1:8118"
@@ -163,11 +160,9 @@ export no_proxy="localhost, 127.0.0.1, ::1"
 # 访问 localhost、192.168.1.1、ip.cn、*.ip.cn、chinaz.com、*.chinaz.com 将不使用代理
 ```
 
-proxychains 方式：
+proxychains方式(未使用)：
 ```bash
 # 安装 proxychains-ng
-## ArchLinux
-pacman -S proxychains-ng
 
 ## CentOS/RHEL
 ./configure --prefix=/usr --sysconfdir=/etc
@@ -202,7 +197,7 @@ curl -4sSkL https://myip.ipip.net
 ```
 
 
-详细调试
+详细调试(未使用)：
 
 ```bash
 # 关闭 privoxy.service
@@ -271,4 +266,21 @@ curl -4sSkL https://www.google.com
 # 调试完成，恢复 privoxy
 pkill privoxy
 systemctl start privoxy.service
+```
+
+# Docker配置HTTP代理
+通过上面步骤已经在Centos7上访问google等网站，并下载一些资源包，但是在docker pull某些镜像的时候（例如k8s.gcr.io/pause ）会发现还是无法pull镜像，但是这个镜像是在使用kubernetes必不可少
+
+## 修改Docker配置
+```bash
+# mkdir /etc/systemd/system/docker.service.d
+# vim  /etc/systemd/system/docker.service.d/http-proxy.conf
+[Service]
+Environment="HTTP_PROXY=http://127.0.0.1:8118"
+```
+## 重启Docker服务
+```bash
+# systemctl daemon-reload
+# systemctl restart docker
+# docker info 可以看到代理的信息
 ```
