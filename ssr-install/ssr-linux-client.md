@@ -1,5 +1,6 @@
 参考：
 - https://www.zfl9.com/ss-local.html
+https://zzz.buzz/zh/gfw/2018/03/21/install-shadowsocks-client-on-centos-7/
 
 ss-local 是 shadowsocks 的本地 socks5 服务器，如果需要使用 ss-local 提供的 socks5 代理，必须让应用程序使用 socks5 协议与之通信。但是很可惜，除了部分浏览器、软件直接支持 socks5 协议外，其它的都只支持 http 代理。因此，我们需要借助 privoxy 来将 http 代理协议转换为 socks5 代理协议，与后端的 ss-local 进行通信，与此同时我们还可以进行 gfwlist 分流操作。
 
@@ -7,23 +8,40 @@ ss-local 是 shadowsocks 的本地 socks5 服务器，如果需要使用 ss-loca
 
 ## 安装
 
-为简单起见，这里选择安装 python 版 shadowsocks，当然你可以选择自己喜欢的任意版本（ss、ssr、ssh、v2ray，只要能提供 socks5 代理）。
+具体安装 shadowsocks-libev 的命令如下：
 
 ```bash
 # CentOS/RHEL
-yum -y install epel-release
-yum -y install python-pip
-pip install shadowsocks
-
-# ArchLinux
-pacman -S python-pip
-pip install shadowsocks
+cd /etc/yum.repos.d/
+curl -O https://copr.fedorainfracloud.org/coprs/librehat/shadowsocks/repo/epel-7/librehat-shadowsocks-epel-7.repo
+yum install -y shadowsocks-libev
 ```
 
-# 配置
+安装完成后，会有 ss-local, ss-manager, ss-nat, ss-redir, ss-server, ss-tunnel 命令可用。
+
+其中，作为客户端，我们需要的是 ss-local，不过后文中我们将通过服务文件启动 Shadowsocks，而不会直接与 ss-local 命令打交道。
+
+注，如果安装报类似如下错误：
 
 ```bash
-vim /etc/ss-local.json
+Error: Package: shadowsocks-libev-3.1.3-1.el7.centos.x86_64 (librehat-shadowsocks)
+           Requires: libsodium >= 1.0.4
+Error: Package: shadowsocks-libev-3.1.3-1.el7.centos.x86_64 (librehat-shadowsocks)
+           Requires: mbedtls
+```
+
+说明系统没有启用 EPEL (Extra Packages for Entreprise Linux)。那么我们需要首先启用 EPEL，再安装 shadowsocks-libev：
+
+```bash
+yum install -y https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm
+yum install -y shadowsocks-libev
+```
+
+
+# 添加配置文件
+shadowsocks-libev 默认读取位于 /etc/shadowsocks-libev/config.json 的配置文件，我们可以根据需要参考以下配置文件进行修改：
+
+```bash
 {
     "server": "1.2.3.4",
     "server_port": 8989,
@@ -48,11 +66,30 @@ vim /etc/ss-local.json
 }
 ```
 
-## 运行
+如果想要变更默认的配置文件，或者提供其他命令行参数，我们可以修改 /etc/sysconfig/shadowsocks-libev：
+```bash
+# Configuration file
+CONFFILE="/etc/shadowsocks-libev/config.json"
+
+# Extra command line arguments
+DAEMON_ARGS="-u"
+```
+
+其中 CONFFILE 指定了 shadowsocks-libev 所读取的配置文件；DAEMON_ARGS 则指定了额外的命令行参数，此处的 "-u" 表示启用 UDP 协议。
+
+需要注意的是，命令行参数 DAEMON_ARGS 比配置文件 CONFFILE 中指定的选项优先级要更高一些。
+
+## 启动 Shadowsocks 服务
+
+有了 Shadowsocks 客户端的配置文件后，我们通过 systemd 启动 Shadowsocks 的客户端服务：
 
 ```bash
-nohup sslocal -c /etc/ss-local.json </dev/null &>>/var/log/ss-local.log &
+systemctl enable --now shadowsocks-libev-local
 ```
+
+以上命令同时也会配置 Shadowsocks 客户端服务的开机自动启动。
+
+至此，客户端所需要的所有配置就都已经完成了。
 
 
 # privoxy
