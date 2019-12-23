@@ -2,7 +2,7 @@
 - https://www.zfl9.com/ss-local.html
 - https://zzz.buzz/zh/gfw/2018/03/21/install-shadowsocks-client-on-centos-7/
 
-ss-local 是 shadowsocks 的本地 socks5 服务器，如果需要使用 ss-local 提供的 socks5 代理，必须让应用程序使用 socks5 协议与之通信。但是很可惜，除了部分浏览器、软件直接支持 socks5 协议外，其它的都只支持 http 代理。因此，我们需要借助 privoxy 来将 http 代理协议转换为 socks5 代理协议，与后端的 ss-local 进行通信，与此同时我们还可以进行 gfwlist 分流操作。 
+ss-local 是 shadowsocks 的本地 socks5 服务器，如果需要使用 ss-local 提供的 socks5 代理，必须让应用程序使用 socks5 协议与之通信。但是很可惜，除了部分浏览器、软件直接支持 socks5 协议外，其它的都只支持 http 代理。因此，我们需要借助 privoxy 来将 http 代理协议转换为 socks5 代理协议，与后端的 ss-local 进行通信，与此同时我们还可以进行 gfwlist 分流操作。
 
 # ss-local
 
@@ -49,8 +49,7 @@ shadowsocks-libev 默认读取位于 /etc/shadowsocks-libev/config.json 的配�
     "password": "123456",
     "local_address": "127.0.0.1",
     "local_port": 1080,
-    "fast_open": true,
-    "workers": 1
+    "timeout":300
 }
 
 ## 配置说明：
@@ -61,6 +60,7 @@ shadowsocks-libev 默认读取位于 /etc/shadowsocks-libev/config.json 的配�
     "password": "123456",         # 端口密码
     "local_address": "127.0.0.1", # 本地监听IP
     "local_port": 1080,           # 本地监听Port
+    "timeout": 300,               # 超时时间
     "fast_open": true,            # TCP Fast Open
     "workers": 1                  # worker进程数量
 }
